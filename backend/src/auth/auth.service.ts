@@ -3,10 +3,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,private jwtService:JwtService) {}
 
   async register(dto: RegisterDto) {
     const { name, email, password } = dto;
@@ -38,7 +39,7 @@ export class AuthService {
     };
   }
 
-  async login(dto:LoginDto){
+  async login(dto:LoginDto):Promise<{access_token:string}>{
     const {email,password}=dto
 
     const user = await this.prisma.user.findUnique({
@@ -53,15 +54,9 @@ export class AuthService {
     if(!isMatch){
       throw new UnauthorizedException("Invalid Password")
     }
-   return {
-  message: "Login successful",
-  user: {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-  },
+    const payload= {userId: user.id, email:user.email, userName:user.name}
+    return {
+      access_token:await this.jwtService.signAsync(payload)
+    }
 };
-  }
-
-  
-}
+  }  
