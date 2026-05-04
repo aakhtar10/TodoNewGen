@@ -20,4 +20,18 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  todos  Todo[]
+}
+
+model Todo {
+  id     Int @id @default (autoincrement())
+
+  userId Int 
+  user User @relation(fields: [userId], references: [id]) 
+
+  title String
+  description String
+  isCompleted Boolean
+  
+
 }
